@@ -10,12 +10,17 @@ on:
       - 'docker/spark/**'
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -29,12 +34,17 @@ jobs:
       - name: Build and push
         run: |
           cd docker/spark
+          # Use the tag as the Docker tag if it's a release build
+          if [[ $GITHUB_REF == refs/tags/* ]]; then
+            export TAG=${GITHUB_REF#refs/tags/}
+          fi
           make build-multi
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/v')
         uses: softprops/action-gh-release@v2
         with:
+          token: ${{ secrets.GITHUB_TOKEN }}
           generate_release_notes: true
           files: |
             docker/spark/Dockerfile
