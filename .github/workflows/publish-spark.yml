@@ -6,8 +6,6 @@ on:
       - main
     tags:
       - 'v*'
-    paths:
-      - 'docker/spark/**'
   workflow_dispatch:
 
 permissions:
@@ -39,6 +37,12 @@ jobs:
             export TAG=${GITHUB_REF#refs/tags/}
           fi
           make build-multi
+
+      - name: Run Integration Tests
+        uses: ./test
+        with:
+          image_name: rnalex/spark-iceberg-nessie
+          tag: ${{ github.ref_type == 'tag' && github.ref_name || 'latest' }}
 
       - name: Create Release
         if: startsWith(github.ref, 'refs/tags/v')

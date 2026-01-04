@@ -1,0 +1,27 @@
+name: 'Run Integration Tests'
+description: 'Runs Spark-Iceberg-Nessie integration tests using a published image'
+inputs:
+  image_name:
+    description: 'Docker image name'
+    required: true
+    default: 'rnalex/spark-iceberg-nessie'
+  tag:
+    description: 'Docker image tag'
+    required: true
+    default: 'latest'
+runs:
+  using: 'composite'
+  steps:
+    - name: Set up Go
+      uses: actions/setup-go@v5
+      with:
+        go-version: '1.23'
+
+    - name: Run Integration Tests
+      shell: bash
+      run: |
+        cd test
+        go test -v ./...
+      env:
+        IMAGE_NAME: ${{ inputs.image_name }}
+        TAG: ${{ inputs.tag }}
